@@ -1,25 +1,34 @@
+import org.junit.Ignore;
 import org.junit.Test;
 
 // TODO: write test cases
-class ClientTest {
+public class ClientTest {
 
-    @Test
-    void getHeaders() {
+    public void setUp() throws Exception {
+//        super.setUp();
+    }
+
+    public void tearDown() throws Exception {
     }
 
     @Test
-    void getUrl() {
+    @Ignore
+    public void getHeaders() {
     }
 
     @Test
-    void request() {
+    @Ignore
+    public void getUrl() {
     }
 
     @Test
-    void testRequest() {
+    @Ignore
+    public void request() {
     }
 
     @Test
-    void processDocument() {
+    @Ignore
+    public void processDocument() {
     }
+
 }
