@@ -1,14 +1,16 @@
+package com.veryfi;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
 // TODO: write test cases
-public class ClientTest {
+public class VeryfiClientTest {
 
-    public void setUp() throws Exception {
+    public void setUp() {
 //        super.setUp();
     }
 
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test
