@@ -203,16 +203,12 @@ public class VeryfiClient {
 
     /**
      * Get list of documents
-     * @return List of previously processed documents
+     * @return JSON List of previously processed documents
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocuments() throws VeryfiClientException {
         String endpointName = "/documents/";
-        String documents = request("GET", endpointName, Collections.emptyMap());
-        // TODO: how to fix this?
-        // if "documents" in documents:
-        //    return documents["documents"]
-        return documents;
+        return request("GET", endpointName, Collections.emptyMap());
     }
 
     /**
@@ -236,7 +232,7 @@ public class VeryfiClient {
      */
     public String processDocument(String filePath, List<String> categories, boolean deleteAfterProcessing) throws VeryfiClientException {
         final String endpointName = "/documents/";
-        if (categories != null && categories.isEmpty()) {
+        if (categories == null || categories.isEmpty()) {
             categories = CATEGORIES;
         }
 
@@ -255,15 +251,82 @@ public class VeryfiClient {
         return this.request("POST", endpointName, requestPayload);
     }
 
-    // TODO: convert other methods as well
+    /**
+     * Process Document by sending it to Veryfi as multipart form
+     * @param filePath Path on disk to a file to submit for data extraction
+     * @param categories List of categories Veryfi can use to categorize the document
+     * @param deleteAfterProcessing Delete this document from Veryfi after data has been extracted
+     * @return document file after processing
+     * @throws VeryfiClientException if there is any error in making request to veryfi APIs
+     */
+    public String processDocumentFile(String filePath, List<String> categories, boolean deleteAfterProcessing) throws VeryfiClientException {
+        final String endpointName = "/documents/";
+        if (categories == null || categories.isEmpty()) {
+            categories = CATEGORIES;
+        }
+        String fileName = null;
+        // TODO: get the filename
+        // file_name = os.path.basename(file_path)
+        Map<String, Object> requestPayload = new HashMap<>();
+        requestPayload.put("file_name", fileName);
+        requestPayload.put("categories", categories);
+        requestPayload.put("auto_delete", deleteAfterProcessing);
+        return request("POST", endpointName, requestPayload, true);
+    }
 
-//    public static void main(String[] args) {
-//        System.out.println(MessageFormat.format("{0}, {1}, {2}, {3}", "a", "b", "c", 40));
-//        Map<String, String> newHeadersMap = new HashMap<>();
-//        newHeadersMap.put("X-Veryfi-Request-Timestamp", String.valueOf(456));
-//        newHeadersMap.put("X-Veryfi-Request-Signature", "signature");
-//        System.out.println(newHeadersMap.toString());
-//        System.out.println(newHeadersMap.toString().getBytes(StandardCharsets.UTF_8));
-//    }
+    /**
+     * Process Document from url and extract all the fields from it
+     * @param fileUrl Required if file_urls isn't specified. Publicly accessible URL to a file, e.g. "https://cdn.example.com/receipt.jpg"
+     * @param fileUrls Required if file_url isn't specifies. List of publicly accessible URLs to multiple files, e.g. ["https://cdn.example.com/receipt1.jpg", "https://cdn.example.com/receipt2.jpg"]
+     * @param categories List of categories to use when categorizing the document
+     * @param deleteAfterProcessing Delete this document from Veryfi after data has been extracted
+     * @param maxPagesToProcess When sending a long document to Veryfi for processing, this paremeter controls how many pages of the document will be read and processed, starting from page 1.
+     * @param boostMode Flag that tells Veryfi whether boost mode should be enabled. When set to 1, Veryfi will skip data enrichment steps, but will process the document faster. Default value for this flag is 0
+     * @param externalId Optional custom document identifier. Use this if you would like to assign your own ID to documents
+     * @return Data extracted from the document
+     * @throws VeryfiClientException if there is any error in making request to veryfi APIs
+     */
+    public String processDocumentUrl(
+            String fileUrl,
+            List<String> fileUrls,
+            List<String> categories,
+            boolean deleteAfterProcessing,
+            int maxPagesToProcess,
+            int boostMode,
+            String externalId
+    ) throws VeryfiClientException {
+        final String endpointName = "/documents/";
+        Map<String, Object> requestPayload = new HashMap<>();
+        requestPayload.put("file_url", fileUrl);
+        requestPayload.put("file_urls", fileUrls);
+        requestPayload.put("categories", categories);
+        requestPayload.put("auto_delete", deleteAfterProcessing);
+        requestPayload.put("max_pages_to_process", maxPagesToProcess);
+        requestPayload.put("boost_mode", boostMode);
+        requestPayload.put("external_id", externalId);
+        return request("POST", endpointName, requestPayload);
+    }
+
+    /**
+     * Delete Document from Veryfi
+     * @param documentId ID of the document you'd like to delete
+     * @throws VeryfiClientException if there is any error in making request to veryfi APIs
+     */
+    public void deleteDocument(int documentId) throws VeryfiClientException {
+        final String endpointName = "/documents/" + documentId + "/";
+        request("DELETE", endpointName, Collections.singletonMap("id", documentId));
+    }
+
+    /**
+     * Update data for a previously processed document, including almost any field like `vendor`, `date`, `notes` and etc.
+     * @param id the id of the document to update
+     * @param fieldsToUpdate key value pair of the fields to update
+     * @return A document json with updated fields, if fields are writible. Otherwise a document with unchanged fields.
+     * @throws VeryfiClientException if there is any error in making request to veryfi APIs
+     */
+    public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
+        final String endpointName = "/documents/" + id + "/";
+        return request("PUT", endpointName, fieldsToUpdate);
+    }
 
 }
