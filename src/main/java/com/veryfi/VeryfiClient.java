@@ -132,7 +132,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String processRequest(String httpMethod, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
-        logger.info("Processing Request with httpMethod[{httpMethod}],endpointName[{}]-[s t a r t]",httpMethod,endpointName);
+        logger.info("Processing Request with httpMethod[{}], endpointName[{}] - [s t a r t]", httpMethod, endpointName);
         Headers defaultHeaders = getHeaders(isFileStream);
         String apiUrl = getUrl() + "/partner" + endpointName;
 
@@ -247,7 +247,7 @@ public class VeryfiClient {
 
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
-        logger.info("Process Document with filePath[{}],fileName[{}]",filePath,fileName);
+        logger.info("Process Document with filePath[{}], fileName[{}]", filePath, fileName);
         String base64EncodedString = null;
         try {
             base64EncodedString = Base64.getEncoder().encodeToString(Files.readAllBytes(fPath));
@@ -277,7 +277,7 @@ public class VeryfiClient {
         }
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
-        logger.info("Process DocumentFile with filePath[{}],fileName[{}]",filePath,fileName);
+        logger.info("Process DocumentFile with filePath[{}], fileName[{}]", filePath, fileName);
         Map<String, Object> requestPayload = new HashMap<>();
         requestPayload.put("file_name", fileName);
         requestPayload.put("categories", categories);
@@ -315,9 +315,9 @@ public class VeryfiClient {
         requestPayload.put("max_pages_to_process", maxPagesToProcess);
         requestPayload.put("boost_mode", boostMode);
         requestPayload.put("external_id", externalId);
-        logger.info("Process DocumentUrl with params fileUrl[{}],deleteAfterProcessing[{}]," +
-                "maxPagesToProcess[{}],boostMode[{}],externalId[{}]",
-                fileUrl,deleteAfterProcessing,maxPagesToProcess,boostMode,externalId);
+        logger.info("Process DocumentUrl with params fileUrl[{}], deleteAfterProcessing[{}]," +
+                        " maxPagesToProcess[{}], boostMode[{}], externalId[{}]",
+                fileUrl, deleteAfterProcessing, maxPagesToProcess, boostMode, externalId);
         return processRequest("POST", endpointName, requestPayload);
     }
 
@@ -328,7 +328,7 @@ public class VeryfiClient {
      */
     public void deleteDocument(int documentId) throws VeryfiClientException {
         final String endpointName = "/documents/" + documentId + "/";
-        logger.info("Deleting Document with documentId[{}],endpointName[{}]",documentId,endpointName);
+        logger.info("Deleting Document with documentId[{}], endpointName[{}]", documentId, endpointName);
         processRequest("DELETE", endpointName, Collections.singletonMap("id", documentId));
     }
 
@@ -341,7 +341,7 @@ public class VeryfiClient {
      */
     public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
         final String endpointName = "/documents/" + id + "/";
-        logger.info("Updating Document with documentId[{}],endpointName[{}]",id,endpointName);
+        logger.info("Updating Document with documentId[{}], endpointName[{}]", id, endpointName);
         return processRequest("PUT", endpointName, fieldsToUpdate);
     }
 
