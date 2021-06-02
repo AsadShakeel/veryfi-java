@@ -112,27 +112,27 @@ public class VeryfiClient {
 
     /**
      * Submit the HTTP request.
-     * @param httpVerb HTTP Method
+     * @param httpMethod HTTP Method
      * @param endpointName Endpoint name such as 'documents', 'users', etc.
      * @param requestArguments JSON payload to send to Veryfi
      * @return A JSON String of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String processRequest(String httpVerb, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
-        return processRequest(httpVerb, endpointName, requestArguments, false);
+    public String processRequest(String httpMethod, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
+        return processRequest(httpMethod, endpointName, requestArguments, false);
     }
 
     /**
      * Submit the HTTP request.
-     * @param httpVerb HTTP Method
+     * @param httpMethod HTTP Method
      * @param endpointName Endpoint name such as 'documents', 'users', etc.
      * @param requestArguments JSON payload to send to Veryfi
      * @param isFileStream A boolean to check if the file stream is available default is false
      * @return A JSON of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String processRequest(String httpVerb, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
-        logger.info("Processing Request -[s t a r t]");
+    public String processRequest(String httpMethod, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
+        logger.info("Processing Request with httpMethod[{httpMethod}],endpointName[{}]-[s t a r t]",httpMethod,endpointName);
         Headers defaultHeaders = getHeaders(isFileStream);
         String apiUrl = getUrl() + "/partner" + endpointName;
 
@@ -156,7 +156,7 @@ public class VeryfiClient {
             RequestBody body = RequestBody.create(requestBodyJSON, mediaType);
             Request request = new Request.Builder()
                     .url(apiUrl)
-                    .method(httpVerb, body)
+                    .method(httpMethod, body)
                     .headers(finalHeaders)
                     .build();
             Response response = httpClient.newCall(request).execute();
@@ -178,7 +178,7 @@ public class VeryfiClient {
      * @return Unique signature generated using the client_secret and the payload
      */
     public String generateSignature(Map<String, Object> payloadParams, Long timestamp) {
-        logger.info("Generating Signature -");
+        logger.info("Generating Signature");
         String payload = MessageFormat.format("timestamp:{0}", timestamp);
         for (String key : payloadParams.keySet()) {
             payload = MessageFormat.format("{0},{1}:{2}", payload, key, payloadParams.get(key));
@@ -225,7 +225,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocument(String documentId) throws VeryfiClientException {
-        logger.info("Getting Document with documentId["+documentId+"]");
+        logger.info("Getting Document with documentId[{}]", documentId);
         String endpointName = "/documents/" + documentId + "/";
         return processRequest("GET", endpointName, Collections.singletonMap("id", documentId));
     }
@@ -239,7 +239,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String processDocument(String filePath, List<String> categories, boolean deleteAfterProcessing) throws VeryfiClientException {
-        logger.info("Processing Document -");
+        logger.info("Processing Document");
         final String endpointName = "/documents/";
         if (categories == null || categories.isEmpty()) {
             categories = CATEGORIES;
@@ -247,7 +247,7 @@ public class VeryfiClient {
 
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
-        logger.info("Process Document -- filePath["+filePath+"],fileName["+fileName+"]");
+        logger.info("Process Document with filePath[{}],fileName[{}]",filePath,fileName);
         String base64EncodedString = null;
         try {
             base64EncodedString = Base64.getEncoder().encodeToString(Files.readAllBytes(fPath));
