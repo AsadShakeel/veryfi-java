@@ -14,6 +14,9 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
@@ -31,8 +34,8 @@ public class VeryfiClient {
 
     private static final String API_VERSION = "v7";
     private static final Integer API_TIMEOUT = 120;
-    private static final Integer MAX_FILE_SIZE_MB = 20;
     private static final String BASE_URL = "https://api.veryfi.com/api/";
+    private static final String HASHING_ALGORITHM = "HmacSHA256";
     private static final List<String> CATEGORIES = Arrays.asList(
             "Advertising & Marketing",
             "Automotive",
@@ -55,7 +58,7 @@ public class VeryfiClient {
     private final String clientSecret;
     private String username;
     private String apiKey;
-    private OkHttpClient httpClient;
+    private final OkHttpClient httpClient;
 
     public VeryfiClient(String clientId, String clientSecret) {
         this.clientId = clientId;
@@ -177,7 +180,7 @@ public class VeryfiClient {
         for (String key : payloadParams.keySet()) {
             payload = MessageFormat.format("{0},{1}:{2}", payload, key, payloadParams.get(key));
         }
-        return createHashAndConvertToBase64String(clientSecret, payload, "HmacSHA256");
+        return createHashAndConvertToBase64String(clientSecret, payload, HASHING_ALGORITHM);
     }
 
     private byte[] createHash(String key, String message, String algorithm) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -236,13 +239,14 @@ public class VeryfiClient {
             categories = CATEGORIES;
         }
 
+        Path fPath = Paths.get(filePath);
+        String fileName = fPath.getFileName().toString();
         String base64EncodedString = null;
-        String fileName = null;
-        // TODO: extract fileName from the filePath and convert into base64
-        // fileName = os.path.basename(filePath);
-        // with open (filePath, "rb")as image_file:
-        //      base64EncodedString = base64.b64encode(image_file.read()).decode("utf-8");
-
+        try {
+            base64EncodedString = Base64.getEncoder().encodeToString(Files.readAllBytes(fPath));
+        } catch (IOException e) {
+            logger.error("Error reading the file: {}", fileName, e);
+        }
         Map<String, Object> requestPayload = new HashMap<>();
         requestPayload.put("file_name", fileName);
         requestPayload.put("file_data", base64EncodedString);
@@ -264,9 +268,8 @@ public class VeryfiClient {
         if (categories == null || categories.isEmpty()) {
             categories = CATEGORIES;
         }
-        String fileName = null;
-        // TODO: get the filename
-        // file_name = os.path.basename(file_path)
+        Path fPath = Paths.get(filePath);
+        String fileName = fPath.getFileName().toString();
         Map<String, Object> requestPayload = new HashMap<>();
         requestPayload.put("file_name", fileName);
         requestPayload.put("categories", categories);
@@ -280,7 +283,7 @@ public class VeryfiClient {
      * @param fileUrls Required if file_url isn't specifies. List of publicly accessible URLs to multiple files, e.g. ["https://cdn.example.com/receipt1.jpg", "https://cdn.example.com/receipt2.jpg"]
      * @param categories List of categories to use when categorizing the document
      * @param deleteAfterProcessing Delete this document from Veryfi after data has been extracted
-     * @param maxPagesToProcess When sending a long document to Veryfi for processing, this paremeter controls how many pages of the document will be read and processed, starting from page 1.
+     * @param maxPagesToProcess When sending a long document to Veryfi for processing, this parameter controls how many pages of the document will be read and processed, starting from page 1.
      * @param boostMode Flag that tells Veryfi whether boost mode should be enabled. When set to 1, Veryfi will skip data enrichment steps, but will process the document faster. Default value for this flag is 0
      * @param externalId Optional custom document identifier. Use this if you would like to assign your own ID to documents
      * @return Data extracted from the document
@@ -321,7 +324,7 @@ public class VeryfiClient {
      * Update data for a previously processed document, including almost any field like `vendor`, `date`, `notes` and etc.
      * @param id the id of the document to update
      * @param fieldsToUpdate key value pair of the fields to update
-     * @return A document json with updated fields, if fields are writible. Otherwise a document with unchanged fields.
+     * @return A document json with updated fields, if fields are writable. Otherwise a document with unchanged fields.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
