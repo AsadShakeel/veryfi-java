@@ -315,9 +315,9 @@ public class VeryfiClient {
         requestPayload.put("max_pages_to_process", maxPagesToProcess);
         requestPayload.put("boost_mode", boostMode);
         requestPayload.put("external_id", externalId);
-        logger.info("Process DocumentUrl with params fileUrl[{}],fileUrls[{}],categories[{}],deleteAfterProcessing[{}]," +
+        logger.info("Process DocumentUrl with params fileUrl[{}],deleteAfterProcessing[{}]," +
                 "maxPagesToProcess[{}],boostMode[{}],externalId[{}]",
-                fileUrl,fileUrls.toString(),categories.toString(),deleteAfterProcessing,maxPagesToProcess,boostMode,externalId);
+                fileUrl,deleteAfterProcessing,maxPagesToProcess,boostMode,externalId);
         return processRequest("POST", endpointName, requestPayload);
     }
 
@@ -327,8 +327,8 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public void deleteDocument(int documentId) throws VeryfiClientException {
-        logger.info("Deleting Document with documentId[{}]",documentId);
         final String endpointName = "/documents/" + documentId + "/";
+        logger.info("Deleting Document with documentId[{}],endpointName[{}]",documentId,endpointName);
         processRequest("DELETE", endpointName, Collections.singletonMap("id", documentId));
     }
 
@@ -340,8 +340,8 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
-        logger.info("Updating Document with documentId[{}]",id);
         final String endpointName = "/documents/" + id + "/";
+        logger.info("Updating Document with documentId[{}],endpointName[{}]",id,endpointName);
         return processRequest("PUT", endpointName, fieldsToUpdate);
     }
 
