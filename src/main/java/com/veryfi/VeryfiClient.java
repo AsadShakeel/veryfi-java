@@ -118,8 +118,8 @@ public class VeryfiClient {
      * @return A JSON String of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String request(String httpVerb, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
-        return request(httpVerb, endpointName, requestArguments, false);
+    public String processRequest(String httpVerb, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
+        return processRequest(httpVerb, endpointName, requestArguments, false);
     }
 
     /**
@@ -131,7 +131,7 @@ public class VeryfiClient {
      * @return A JSON of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String request(String httpVerb, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
+    public String processRequest(String httpVerb, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
         Headers defaultHeaders = getHeaders(isFileStream);
         String apiUrl = getUrl() + "/partner" + endpointName;
 
@@ -210,8 +210,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocuments() throws VeryfiClientException {
+        logger.info("Getting Documents");
         String endpointName = "/documents/";
-        return request("GET", endpointName, Collections.emptyMap());
+        return processRequest("GET", endpointName, Collections.emptyMap());
     }
 
     /**
@@ -221,8 +222,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocument(String documentId) throws VeryfiClientException {
+        logger.info("Getting Document with documentId["+documentId+"]");
         String endpointName = "/documents/" + documentId + "/";
-        return request("GET", endpointName, Collections.singletonMap("id", documentId));
+        return processRequest("GET", endpointName, Collections.singletonMap("id", documentId));
     }
 
     /**
@@ -241,6 +243,7 @@ public class VeryfiClient {
 
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
+        logger.info("Process Document -- filePath["+filePath+"],fileName["+fileName+"]");
         String base64EncodedString = null;
         try {
             base64EncodedString = Base64.getEncoder().encodeToString(Files.readAllBytes(fPath));
@@ -252,7 +255,7 @@ public class VeryfiClient {
         requestPayload.put("file_data", base64EncodedString);
         requestPayload.put("categories", categories);
         requestPayload.put("auto_delete", deleteAfterProcessing);
-        return this.request("POST", endpointName, requestPayload);
+        return this.processRequest("POST", endpointName, requestPayload);
     }
 
     /**
@@ -270,11 +273,12 @@ public class VeryfiClient {
         }
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
+        logger.info("Process Document File -- filePath["+filePath+"],fileName["+fileName+"]");
         Map<String, Object> requestPayload = new HashMap<>();
         requestPayload.put("file_name", fileName);
         requestPayload.put("categories", categories);
         requestPayload.put("auto_delete", deleteAfterProcessing);
-        return request("POST", endpointName, requestPayload, true);
+        return processRequest("POST", endpointName, requestPayload, true);
     }
 
     /**
@@ -307,7 +311,7 @@ public class VeryfiClient {
         requestPayload.put("max_pages_to_process", maxPagesToProcess);
         requestPayload.put("boost_mode", boostMode);
         requestPayload.put("external_id", externalId);
-        return request("POST", endpointName, requestPayload);
+        return processRequest("POST", endpointName, requestPayload);
     }
 
     /**
@@ -316,8 +320,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public void deleteDocument(int documentId) throws VeryfiClientException {
+        logger.info("Deleting Document -- documentId["+documentId+"]");
         final String endpointName = "/documents/" + documentId + "/";
-        request("DELETE", endpointName, Collections.singletonMap("id", documentId));
+        processRequest("DELETE", endpointName, Collections.singletonMap("id", documentId));
     }
 
     /**
@@ -328,8 +333,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
+        logger.info("Updating Document -- documentId["+id+"]");
         final String endpointName = "/documents/" + id + "/";
-        return request("PUT", endpointName, fieldsToUpdate);
+        return processRequest("PUT", endpointName, fieldsToUpdate);
     }
 
 }
