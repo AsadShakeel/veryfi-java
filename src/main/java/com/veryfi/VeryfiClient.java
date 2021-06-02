@@ -132,6 +132,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String processRequest(String httpVerb, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
+        logger.info("Processing Request -[s t a r t]");
         Headers defaultHeaders = getHeaders(isFileStream);
         String apiUrl = getUrl() + "/partner" + endpointName;
 
@@ -162,6 +163,7 @@ public class VeryfiClient {
             if (!response.isSuccessful()) {
                 throw new VeryfiClientException("Error in processing the request: " + response.message());
             }
+            logger.info("Processing Request -[e n d]");
             return String.valueOf(response.body());
         } catch (IOException e) {
             logger.error("Error in processing the request", e);
@@ -176,6 +178,7 @@ public class VeryfiClient {
      * @return Unique signature generated using the client_secret and the payload
      */
     public String generateSignature(Map<String, Object> payloadParams, Long timestamp) {
+        logger.info("Generating Signature -");
         String payload = MessageFormat.format("timestamp:{0}", timestamp);
         for (String key : payloadParams.keySet()) {
             payload = MessageFormat.format("{0},{1}:{2}", payload, key, payloadParams.get(key));
@@ -236,6 +239,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String processDocument(String filePath, List<String> categories, boolean deleteAfterProcessing) throws VeryfiClientException {
+        logger.info("Processing Document -");
         final String endpointName = "/documents/";
         if (categories == null || categories.isEmpty()) {
             categories = CATEGORIES;
