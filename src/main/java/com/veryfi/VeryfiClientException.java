@@ -9,4 +9,5 @@ public class VeryfiClientException extends Exception {
     VeryfiClientException(String message, Throwable error) {
         super(message, error);
     }
+
 }

@@ -112,26 +112,27 @@ public class VeryfiClient {
 
     /**
      * Submit the HTTP request.
-     * @param httpVerb HTTP Method
+     * @param httpMethod HTTP Method
      * @param endpointName Endpoint name such as 'documents', 'users', etc.
      * @param requestArguments JSON payload to send to Veryfi
      * @return A JSON String of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String request(String httpVerb, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
-        return request(httpVerb, endpointName, requestArguments, false);
+    public String processRequest(String httpMethod, String endpointName, Map<String, Object> requestArguments) throws VeryfiClientException {
+        return processRequest(httpMethod, endpointName, requestArguments, false);
     }
 
     /**
      * Submit the HTTP request.
-     * @param httpVerb HTTP Method
+     * @param httpMethod HTTP Method
      * @param endpointName Endpoint name such as 'documents', 'users', etc.
      * @param requestArguments JSON payload to send to Veryfi
      * @param isFileStream A boolean to check if the file stream is available default is false
      * @return A JSON of the response data.
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
-    public String request(String httpVerb, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
+    public String processRequest(String httpMethod, String endpointName, Map<String, Object> requestArguments, boolean isFileStream) throws VeryfiClientException {
+        logger.info("Processing Request with httpMethod[{}], endpointName[{}] - [s t a r t]", httpMethod, endpointName);
         Headers defaultHeaders = getHeaders(isFileStream);
         String apiUrl = getUrl() + "/partner" + endpointName;
 
@@ -155,13 +156,14 @@ public class VeryfiClient {
             RequestBody body = RequestBody.create(requestBodyJSON, mediaType);
             Request request = new Request.Builder()
                     .url(apiUrl)
-                    .method(httpVerb, body)
+                    .method(httpMethod, body)
                     .headers(finalHeaders)
                     .build();
             Response response = httpClient.newCall(request).execute();
             if (!response.isSuccessful()) {
                 throw new VeryfiClientException("Error in processing the request: " + response.message());
             }
+            logger.info("Processing Request -[e n d]");
             return String.valueOf(response.body());
         } catch (IOException e) {
             logger.error("Error in processing the request", e);
@@ -176,6 +178,7 @@ public class VeryfiClient {
      * @return Unique signature generated using the client_secret and the payload
      */
     public String generateSignature(Map<String, Object> payloadParams, Long timestamp) {
+        logger.info("Generating Signature");
         String payload = MessageFormat.format("timestamp:{0}", timestamp);
         for (String key : payloadParams.keySet()) {
             payload = MessageFormat.format("{0},{1}:{2}", payload, key, payloadParams.get(key));
@@ -210,8 +213,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocuments() throws VeryfiClientException {
+        logger.info("Getting Documents");
         String endpointName = "/documents/";
-        return request("GET", endpointName, Collections.emptyMap());
+        return processRequest("GET", endpointName, Collections.emptyMap());
     }
 
     /**
@@ -221,8 +225,9 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String getDocument(String documentId) throws VeryfiClientException {
+        logger.info("Getting Document with documentId[{}]", documentId);
         String endpointName = "/documents/" + documentId + "/";
-        return request("GET", endpointName, Collections.singletonMap("id", documentId));
+        return processRequest("GET", endpointName, Collections.singletonMap("id", documentId));
     }
 
     /**
@@ -234,6 +239,7 @@ public class VeryfiClient {
      * @throws VeryfiClientException if there is any error in making request to veryfi APIs
      */
     public String processDocument(String filePath, List<String> categories, boolean deleteAfterProcessing) throws VeryfiClientException {
+        logger.info("Processing Document");
         final String endpointName = "/documents/";
         if (categories == null || categories.isEmpty()) {
             categories = CATEGORIES;
@@ -241,6 +247,7 @@ public class VeryfiClient {
 
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
+        logger.info("Process Document with filePath[{}], fileName[{}]", filePath, fileName);
         String base64EncodedString = null;
         try {
             base64EncodedString = Base64.getEncoder().encodeToString(Files.readAllBytes(fPath));
@@ -252,7 +259,7 @@ public class VeryfiClient {
         requestPayload.put("file_data", base64EncodedString);
         requestPayload.put("categories", categories);
         requestPayload.put("auto_delete", deleteAfterProcessing);
-        return this.request("POST", endpointName, requestPayload);
+        return this.processRequest("POST", endpointName, requestPayload);
     }
 
     /**
@@ -270,11 +277,12 @@ public class VeryfiClient {
         }
         Path fPath = Paths.get(filePath);
         String fileName = fPath.getFileName().toString();
+        logger.info("Process DocumentFile with filePath[{}], fileName[{}]", filePath, fileName);
         Map<String, Object> requestPayload = new HashMap<>();
         requestPayload.put("file_name", fileName);
         requestPayload.put("categories", categories);
         requestPayload.put("auto_delete", deleteAfterProcessing);
-        return request("POST", endpointName, requestPayload, true);
+        return processRequest("POST", endpointName, requestPayload, true);
     }
 
     /**
@@ -307,7 +315,10 @@ public class VeryfiClient {
         requestPayload.put("max_pages_to_process", maxPagesToProcess);
         requestPayload.put("boost_mode", boostMode);
         requestPayload.put("external_id", externalId);
-        return request("POST", endpointName, requestPayload);
+        logger.info("Process DocumentUrl with params fileUrl[{}], deleteAfterProcessing[{}]," +
+                        " maxPagesToProcess[{}], boostMode[{}], externalId[{}]",
+                fileUrl, deleteAfterProcessing, maxPagesToProcess, boostMode, externalId);
+        return processRequest("POST", endpointName, requestPayload);
     }
 
     /**
@@ -317,7 +328,8 @@ public class VeryfiClient {
      */
     public void deleteDocument(int documentId) throws VeryfiClientException {
         final String endpointName = "/documents/" + documentId + "/";
-        request("DELETE", endpointName, Collections.singletonMap("id", documentId));
+        logger.info("Deleting Document with documentId[{}], endpointName[{}]", documentId, endpointName);
+        processRequest("DELETE", endpointName, Collections.singletonMap("id", documentId));
     }
 
     /**
@@ -329,7 +341,8 @@ public class VeryfiClient {
      */
     public String updateDocument(int id, Map<String, Object> fieldsToUpdate) throws VeryfiClientException {
         final String endpointName = "/documents/" + id + "/";
-        return request("PUT", endpointName, fieldsToUpdate);
+        logger.info("Updating Document with documentId[{}], endpointName[{}]", id, endpointName);
+        return processRequest("PUT", endpointName, fieldsToUpdate);
     }
 
 }
